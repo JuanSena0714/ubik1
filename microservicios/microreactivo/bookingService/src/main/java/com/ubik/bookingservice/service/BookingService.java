@@ -23,6 +23,11 @@ public class BookingService {
     }
 
     public Mono<BookingResponse> createBooking(BookingRequest request) {
+        // Validar que la fecha de salida sea posterior a la fecha de entrada
+        if (!request.checkOutDate().isAfter(request.checkInDate())) {
+            return Mono.error(new IllegalArgumentException("Check-out date must be after check-in date"));
+        }
+
         // Verificar que la habitación esté disponible
         return motelServiceClient.getRoomById(request.roomId())
             .flatMap(room -> {
@@ -32,6 +37,11 @@ public class BookingService {
 
                 // Calcular el precio total
                 long nights = ChronoUnit.DAYS.between(request.checkInDate(), request.checkOutDate());
+
+                // Validar que haya al menos una noche
+                if (nights < 1) {
+                    return Mono.error(new IllegalArgumentException("Booking must be for at least one night"));
+                }
                 BigDecimal totalPrice = room.pricePerNight().multiply(BigDecimal.valueOf(nights));
 
                 // Crear la reserva
