@@ -46,13 +46,19 @@ public class BookingHandler {
         Long id = Long.valueOf(req.pathVariable("id"));
         return bookingService.confirmBooking(id)
             .flatMap(booking -> ServerResponse.ok().bodyValue(booking))
-            .switchIfEmpty(ServerResponse.notFound().build());
+            .switchIfEmpty(ServerResponse.notFound().build())
+            .onErrorResume(error ->
+                ServerResponse.badRequest().bodyValue("Error confirming booking: " + error.getMessage())
+            );
     }
 
     public Mono<ServerResponse> cancel(ServerRequest req) {
         Long id = Long.valueOf(req.pathVariable("id"));
         return bookingService.cancelBooking(id)
             .flatMap(booking -> ServerResponse.ok().bodyValue(booking))
-            .switchIfEmpty(ServerResponse.notFound().build());
+            .switchIfEmpty(ServerResponse.notFound().build())
+            .onErrorResume(error ->
+                ServerResponse.badRequest().bodyValue("Error cancelling booking: " + error.getMessage())
+            );
     }
 }
