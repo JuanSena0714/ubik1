@@ -1,0 +1,32 @@
+server:
+  port: 8083
+
+spring:
+  application:
+    name: booking-service
+  r2dbc:
+    url: r2dbc:mysql://localhost:3306/booking_db
+    username: root
+    password: root
+  data:
+    r2dbc:
+      repositories:
+        enabled: true
+
+services:
+  motel-management:
+    url: http://localhost:8084
+  user-management:
+    url: http://localhost:8081
+
+logging:
+  level:
+    root: INFO
+    com.ubik.bookingservice: DEBUG
+    io.r2dbc.mysql: DEBUG
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

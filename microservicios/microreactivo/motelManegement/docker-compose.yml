@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: motel-postgres-db
+    environment:
+      POSTGRES_DB: motel_management_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: carlosmanuel
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"
+    volumes:
+      # Script de inicialización
+      - ./src/main/resources/Postgres-init-motel.sql:/docker-entrypoint-initdb.d/init.sql
+      # Persistencia de datos
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - motel-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d motel_management_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # Opcional: Adminer para gestión visual de la base de datos
+  adminer:
+    image: adminer:latest
+    container_name: motel-adminer
+    ports:
+      - "8081:8080"
+    networks:
+      - motel-network
+    depends_on:
+      - postgres
+    restart: unless-stopped
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres
+
+volumes:
+  postgres-data:
+    driver: local
+
+networks:
+  motel-network:
+    driver: bridge

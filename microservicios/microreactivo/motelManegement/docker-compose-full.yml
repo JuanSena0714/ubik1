@@ -1,0 +1,77 @@
+version: '3.8'
+
+services:
+  # Base de datos PostgreSQL
+  postgres:
+    image: postgres:16-alpine
+    container_name: motel-postgres-db
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-motel_management_db}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-carlosmanuel}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      # Script de inicialización
+      - ./src/main/resources/Postgres-init-motel.sql:/docker-entrypoint-initdb.d/init.sql
+      # Persistencia de datos
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - motel-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d motel_management_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+  # Aplicación Spring Boot
+  motel-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: motel-management-app
+    ports:
+      - "${SERVICE_PORT:-8083}:8083"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_R2DBC_URL: r2dbc:postgresql://postgres:5432/motel_management_db
+      SPRING_R2DBC_USERNAME: ${POSTGRES_USER:-postgres}
+      SPRING_R2DBC_PASSWORD: ${POSTGRES_PASSWORD:-carlosmanuel}
+    networks:
+      - motel-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8083/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Adminer - Interfaz web para gestionar PostgreSQL
+  adminer:
+    image: adminer:latest
+    container_name: motel-adminer
+    ports:
+      - "${ADMINER_PORT:-8081}:8080"
+    networks:
+      - motel-network
+    depends_on:
+      - postgres
+    restart: unless-stopped
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres
+      ADMINER_DESIGN: nette
+
+volumes:
+  postgres-data:
+    driver: local
+
+networks:
+  motel-network:
+    driver: bridge
