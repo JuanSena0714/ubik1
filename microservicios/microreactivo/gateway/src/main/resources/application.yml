@@ -1,56 +1,83 @@
 server:
   port: 8080
+
 spring:
   application.name: api-gateway
   cloud:
     gateway:
-      server:
-        webflux:
-          # ******** DEFINIR LAS RUTAS DE CADA MICROSERVICIO UNA VEZ ESTE CREADO *********
-          routes:
-            - id: products
-              uri: http://localhost:8082
-              predicates:
-                - Path=/api/products/**
-              filters:
-                - StripPrefix=1
+      # Global CORS configuration
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowed-origins: "*"
+            allowed-methods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowed-headers: "*"
+            exposed-headers:
+              - X-User-Id
+              - X-User-Role
+              - X-Error-Message
+            allow-credentials: false
+            max-age: 3600
 
-            # Microservicio de Motel Management - Motels
-            - id: motel-management-motels
-              uri: http://localhost:8084
-              predicates:
-                - Path=/api/motels/**
-              filters:
-                - StripPrefix=0
+      routes:
+        # Products Service
+        - id: products
+          uri: http://localhost:8082
+          predicates:
+            - Path=/api/products/**
+          filters:
+            - StripPrefix=1
+            - name: AuthorizationFilter
 
-            # Microservicio de Motel Management - Rooms
-            - id: motel-management-rooms
-              uri: http://localhost:8084
-              predicates:
-                - Path=/api/rooms/**
-              filters:
-                - StripPrefix=0
+        # Motel Management - Motels
+        - id: motel-management-motels
+          uri: http://localhost:8084
+          predicates:
+            - Path=/api/motels/**
+          filters:
+            - StripPrefix=0
+            - name: AuthorizationFilter
 
-            # Microservicio de Motel Management - Services
-            - id: motel-management-services
-              uri: http://localhost:8084
-              predicates:
-                - Path=/api/services/**
-              filters:
-                - StripPrefix=0
+        # Motel Management - Rooms
+        - id: motel-management-rooms
+          uri: http://localhost:8084
+          predicates:
+            - Path=/api/rooms/**
+          filters:
+            - StripPrefix=0
+            - name: AuthorizationFilter
 
-            # Microservicio de Booking Service - Reservas
-            - id: booking-service
-              uri: http://localhost:8083
-              predicates:
-                - Path=/api/bookings/**
-              filters:
-                - StripPrefix=0
+        # Motel Management - Services
+        - id: motel-management-services
+          uri: http://localhost:8084
+          predicates:
+            - Path=/api/services/**
+          filters:
+            - StripPrefix=0
+            - name: AuthorizationFilter
 
-          trusted-proxies: '127\.0\.0\.1|::1'
+        # Booking Service - Reservations
+        - id: booking-service
+          uri: http://localhost:8083
+          predicates:
+            - Path=/api/bookings/**
+          filters:
+            - StripPrefix=0
+            - name: AuthorizationFilter
+
+# Logging configuration
+logging:
+  level:
+    com.example.gateway: DEBUG
+    org.springframework.cloud.gateway: DEBUG
 
 management:
   endpoints:
     web:
       exposure:
-        include: "health,info,metrics"
+        include: "health,info,metrics,gateway"
