@@ -14,10 +14,13 @@ spring:
         enabled: true
 
 services:
+  # Updated to use API Gateway instead of direct service calls
+  gateway:
+    url: http://localhost:8080
   motel-management:
-    url: http://localhost:8084
+    url: http://localhost:8080  # Route through gateway
   user-management:
-    url: http://localhost:8081
+    url: http://localhost:8080  # Route through gateway
 
 logging:
   level:
