@@ -43,15 +43,15 @@ public class MotelServiceClient {
     public Mono<RoomDTO> updateRoomAvailability(Long roomId, Boolean available) {
         return getRoomById(roomId)
             .flatMap(room -> {
+                // Crear DTO actualizado con los nombres de campo correctos
                 RoomDTO updatedRoom = new RoomDTO(
                     room.id(),
                     room.motelId(),
-                    room.roomNumber(),
+                    room.number(),          // Usar number en lugar de roomNumber()
                     room.roomType(),
-                    room.pricePerNight(),
-                    room.capacity(),
-                    available,
-                    room.description()
+                    room.price(),           // Usar price() directamente
+                    room.description(),
+                    available               // Nueva disponibilidad
                 );
                 return webClient.put()
                     .uri("/api/rooms/{id}", roomId)

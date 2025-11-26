@@ -9,14 +9,14 @@
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>3.5.3</version>
+    <version>3.3.0</version>
     <relativePath/>
   </parent>
 
   <properties>
     <java.version>17</java.version>
-    <spring-cloud.version>2025.0.0</spring-cloud.version>
-    <r2dbc-mysql.version>1.4.0</r2dbc-mysql.version>
+    <spring-cloud.version>2023.0.2</spring-cloud.version>
+    <r2dbc-mysql.version>1.1.2</r2dbc-mysql.version>
     <maven.compiler.plugin.version>3.11.0</maven.compiler.plugin.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
@@ -37,8 +37,8 @@
   <modules>
     <module>gateway</module>
     <module>products</module>
-    <module>userManagement</module>
-      <module>motelManegement</module>
+    <module>motelManegement</module>
+    <module>bookingService</module>
   </modules>
 
   <build>
